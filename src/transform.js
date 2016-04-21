@@ -1,4 +1,3 @@
-import {Map as IMap} from 'immutable'
 import {concat, resolve as iterable} from 'iterator-util'
 import {FallbackMap} from 'fallback-map'
 
@@ -79,7 +78,12 @@ export function Transform (structureMap, subtypeMap) {
         continue
       }
 
-      const childResult = traverseNode(child, path, visitorMap)
+      let childResult, nextResult = traverseNode(child, path, visitorMap)
+      while (nextResult != null) {
+        childResult = nextResult
+        nextResult = traverseNode(childResult, path, visitorMap)
+      }
+
       if (childResult !== void 0) {
         node[name] = childResult
       }
@@ -101,6 +105,11 @@ export function Transform (structureMap, subtypeMap) {
 
     const visitorMap = Visitor(rawVisitor, subtypeMap)
 
-    traverseNode(rootNode, null, visitorMap)
+    let result, next = traverseNode(rootNode, null, visitorMap)
+    while (next != null) {
+      result = next
+      next = traverseNode(result, null, visitorMap)
+    }
+    return result || rootNode
   }
 }

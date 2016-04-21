@@ -7,20 +7,10 @@ export function isNode (node) {
     return false
   }
   const {type} = node
-  if (!type || typeof type !== 'string' || !primitiveTypes.has(type)) {
+  if (!type || typeof type !== 'string' || primitiveTypes.has(type)) {
     return false
   }
   return true
-}
-
-export function getType (node) {
-  if (node == null) {
-    return 'null'
-  }
-  if (valueTypes.has(typeof node)) {
-    return typeof node
-  }
-  return isNode(node) ? node.type : false
 }
 
 export const isValidType = subtypeMap => (node, type) => {
@@ -36,7 +26,7 @@ export const isValidType = subtypeMap => (node, type) => {
   return subtypeMap.get(type).has(node.type)
 }
 
-function getFullChildren (structureMap, type) {
+export function getFullChildren (structureMap, type) {
   const {children, inherits} = structureMap.get(type)
 
   if (!inherits) {

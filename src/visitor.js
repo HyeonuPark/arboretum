@@ -1,6 +1,8 @@
 import {indexed} from 'iterator-util'
 import {FallbackMap} from 'fallback-map'
 
+const noop = () => {}
+
 function normalizeHandler (handler, key) {
   if (typeof handler === 'function') {
     return {

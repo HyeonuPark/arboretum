@@ -44,8 +44,10 @@ export function Spec () {
         iterate: ?boolean,
         transform: ?(node: any) => any
       }>,
-      alias: ?string|Array<string>,
-      inherits: ?string
+      {alias, inherits} = {}: ?{
+        alias: ?string|Array<string>,
+        inherits: ?string
+      }
     ) {
       if (typePool.has(type)) {
         throw new Error(`duplicated node type ${type}`)

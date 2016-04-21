@@ -1,6 +1,9 @@
+import {isNode} from './util'
+
 export function Path (node, parent, shapeMap, subtypeMap) {
   const {type} = node
   const shape = shapeMap.get(type)
+
   return {
     node,
     type,
@@ -14,13 +17,21 @@ export function Path (node, parent, shapeMap, subtypeMap) {
         return null
       }
 
-      const child = childDesc.isArray
-        ? node[name][index || 0]
-        : node[name]
+      const resolvePath = maybeNode => {
+        if (isNode(maybeNode)) {
+          return Path(maybeNode, this, shapeMap, subtypeMap)
+        }
+        return maybeNode
+      }
 
-      return isNode(child)
-        ? Path(child, this, shapeMap, subtypeMap)
-        : child
+      if (childDesc.isArray) {
+        if (typeof index === 'number') {
+          return resolvePath(node[name][index])
+        }
+        return node[name].map(resolvePath)
+      }
+
+      return resolvePath(node[name])
     }
   }
 }
