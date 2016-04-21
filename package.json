@@ -39,7 +39,9 @@
     "mocha": "^2.4.5"
   },
   "dependencies": {
-    "iterable-queue": "^1.0.2",
-    "iterator-util": "^1.1.0"
+    "fallback-map": "^1.0.3",
+    "immutable": "^3.8.1",
+    "iterable-queue": "^1.1.0",
+    "iterator-util": "^1.3.1"
   }
 }

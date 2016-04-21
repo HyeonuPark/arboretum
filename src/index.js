@@ -2,29 +2,31 @@ import assert from 'assert'
 
 import {concat, product, resolve as iterable} from 'iterator-util'
 import {Queue} from 'iterable-queue'
+import {FallbackMap} from 'fallback-map'
 
 import {Builder} from './builder'
-import {Search, Transform} from './visit'
+import {Transform} from './transform'
 
-function flattenAlias (aliasMap) {
-  const aliasFlatten = new Map()
-  for (let [nodeType, directAlias] of aliasMap.entries()) {
+function getSubtypeMap (aliasMap) {
+  const subtypeMap = FallbackMap(() => new Set())
+
+  for (let nodeType of aliasMap.keys()) {
     const aliasSet = new Set()
-    aliasFlatten.set(nodeType, aliasSet)
 
-    const queue = Queue(directAlias)
+    const queue = Queue(nodeType)
     for (let alias of queue) {
       if (aliasSet.has(alias)) {
         continue
       }
       aliasSet.add(alias)
+      subtypeMap.get(alias).add(nodeType)
 
       for (let aliasOfAlias of aliasMap.get(alias)) {
         queue.add(aliasOfAlias)
       }
     }
   }
-  return aliasFlatten
+  return subtypeMap
 }
 
 export function Spec () {
@@ -39,6 +41,7 @@ export function Spec () {
         type: string|Array<string>,
         name: string,
         isArray: ?boolean,
+        iterate: ?boolean,
         transform: ?(node: any) => any
       }>,
       alias: ?string|Array<string>,
@@ -59,15 +62,14 @@ export function Spec () {
       aliasMap.set(type, iterable(alias))
     },
     done () {
-      const aliasFlatten = flattenAlias(aliasMap)
+      const subtypeMap = getSubtypeMap(aliasMap)
 
       return {
         isAliasOf (maybeAlias, maybeSubtype) {
-          return aliasFlatten.get(maybeSubtype).has(maybeAlias)
+          return subtypeMap.get(maybeAlias).has(maybeSubtype)
         },
-        builder: Builder(structureMap),
-        search: Search(structureMap),
-        transform: Transform(structureMap)
+        builder: Builder(structureMap, subtypeMap),
+        transform: Transform(structureMap, subtypeMap)
       }
     }
   }

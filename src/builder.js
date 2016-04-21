@@ -2,39 +2,17 @@ import assert from 'assert'
 
 import {indexed, every, some} from 'iterator-util'
 
-const valueTypes = new Set(['null', 'boolean', 'number', 'string'])
+import {isValidType, getFullChildren} from './util'
 
-function isValidType (given, type) {
-  if (type === 'null' && given == null) {
-    return true
-  }
-  if (typeof given === type) {
-    return true
-  }
-  if (valueTypes.has(type) || !given || typeof given !== 'object') {
-    return false
-  }
-  return given.type === type
-}
-
-function getFullChildren (structureMap, type) {
-  const {children, inherits} = structureMap.get(type)
-
-  if (!inherits) {
-    return children
-  }
-
-  return getFullChildren(structureMap, inherits).concat(children)
-}
-
-export function Builder (structureMap) {
+export function Builder (structureMap, subtypeMap) {
   const builder = {}
+  const isValid = isValidType(subtypeMap)
 
   for (let type of structureMap.keys()) {
     const children = getFullChildren(structureMap, type)
 
     builder[type] = (...args) => {
-      const node = {}
+      const node = {type}
 
       for (let {
         index,
@@ -42,12 +20,18 @@ export function Builder (structureMap) {
           type: childType,
           name,
           isArray,
-          transform
+          transformer
         }
       } of indexed(children)) {
-        const given = args[index]
-        assert.stritEqual(Array.isArray(given), isArray === true)
-        assert.ok(every(given, g => some(childType, t => isValidType(g, t))))
+        let given = args[index]
+        assert.strictEqual(Array.isArray(given), isArray === true)
+        assert.ok(every(given, g => some(childType, t => isValid(g, t))))
+
+        if (transformer) {
+          given = isArray
+            ? given.map(transformer)
+            : transformer(given)
+        }
 
         node[name] = given
       }
