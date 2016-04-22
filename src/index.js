@@ -6,6 +6,7 @@ import {FallbackMap} from 'fallback-map'
 
 import {Builder} from './builder'
 import {Transform} from './transform'
+import {Convert} from './convert'
 
 function getSubtypeMap (aliasMap) {
   const subtypeMap = FallbackMap(() => new Set())
@@ -29,7 +30,7 @@ function getSubtypeMap (aliasMap) {
   return subtypeMap
 }
 
-export function Spec () {
+export default function Spec () {
   const typePool = new Set()
   const structureMap = new Map()
   const aliasMap = new Map()
@@ -44,7 +45,10 @@ export function Spec () {
         iterate: ?boolean,
         transform: ?(node: any) => any
       }>,
-      {alias, inherits} = {}: ?{
+      {
+        alias,
+        inherits
+      } = {} : ?{
         alias: ?string|Array<string>,
         inherits: ?string
       }
@@ -71,7 +75,8 @@ export function Spec () {
           return subtypeMap.get(maybeAlias).has(maybeSubtype)
         },
         builder: Builder(structureMap, subtypeMap),
-        transform: Transform(structureMap, subtypeMap)
+        transform: Transform(structureMap, subtypeMap),
+        convert: Convert(structureMap, subtypeMap)
       }
     }
   }

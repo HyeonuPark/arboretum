@@ -1,5 +1,6 @@
 import {expect} from 'chai'
-import {isNode} from '../src/util'
+import {FallbackMap} from 'fallback-map'
+import {isNode, isValidType} from '../src/util'
 
 describe('util', () => {
   describe('.isNode()', () => {
@@ -16,6 +17,7 @@ describe('util', () => {
       expect(isNode({type: 'boolean'})).to.be.false
       expect(isNode({type: 'number'})).to.be.false
       expect(isNode({type: 'string'})).to.be.false
+      expect(isNode({type: 'object'})).to.be.false
     })
 
     it('should return true for valid node object', () => {
@@ -26,5 +28,41 @@ describe('util', () => {
         value: 42
       })).to.be.true
     })
+  })
+
+  describe('.isValidType()', () => {
+    const subtypeMap = FallbackMap(() => new Set())
+    subtypeMap.get('foo').add('bar').add('baz')
+
+    it('should be a curried function', () => {
+      const isValid = isValidType(subtypeMap)
+
+      expect(isValid).to.be.a('function')
+    })
+
+    it('should treat string as \'string\' type', () => {
+      const isValid = isValidType(subtypeMap)
+
+      expect(isValid('text', 'string')).to.be.true
+      expect(isValid({type: 'string'}, 'string')).to.be.false
+    })
+
+    it('should treat nullish value as \'null\' type', () => {
+      const isValid = isValidType(subtypeMap)
+
+      expect(isValid(42, 'number')).to.be.true
+      expect(isValid({type: 'number'})).to.be.false
+    })
+
+    it('should be possible to track subtypes', () => {
+      const isValid = isValidType(subtypeMap)
+
+      expect(isValid({type: 'bar'}, 'foo')).to.be.true
+      expect(isValid({type: 'foo'}, 'baz')).to.be.false
+    })
+  })
+
+  describe('.getFullChildren()', () => {
+    
   })
 })

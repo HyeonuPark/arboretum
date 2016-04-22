@@ -1,8 +1,8 @@
 import {expect} from 'chai'
-import {Spec} from '../../src/index'
+import arboretum from '../../src/index'
 
-describe('Chain to binary expression', () => {
-  const {define, done} = Spec()
+describe('#fixture# Chain to binary expression', () => {
+  const {define, done} = arboretum()
 
   define('Node')
 
@@ -29,8 +29,7 @@ describe('Chain to binary expression', () => {
 
   const visitor = {
     Chain (path) {
-      const {node} = path
-      const {body} = node
+      const {body} = path.node
       if (body.length === 2) {
         return t.Binary(body[0], body[1])
       }
@@ -41,9 +40,11 @@ describe('Chain to binary expression', () => {
     }
   }
 
+  const transformTree = transform(visitor)
+
   it('should return nested binaries', () => {
     const chain5 = t.Chain(['a', 'b', 'c', 'd', 'e'])
-    expect(transform(chain5, visitor)).to.deep.equal({
+    expect(transformTree(chain5)).to.deep.equal({
       type: 'Binary',
       left: 'a',
       right: {
@@ -64,7 +65,7 @@ describe('Chain to binary expression', () => {
 
   it('should return two branches of nested binaries', () => {
     const twoChain = t.Binary(t.Chain(['a', 'b']), t.Chain(['c', 'd', 'e']))
-    expect(transform(twoChain, visitor)).to.deep.equal({
+    expect(transformTree(twoChain)).to.deep.equal({
       type: 'Binary',
       left: {
         type: 'Binary',

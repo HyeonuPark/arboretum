@@ -3,7 +3,7 @@ import {FallbackMap} from 'fallback-map'
 
 import {Visitor} from './visitor'
 import {Path} from './path'
-import {isNode, getFullChildren} from './util'
+import {isNode, getFullChildren, ShapeMap} from './util'
 
 const noop = () => {}
 
@@ -11,35 +11,32 @@ const ENTER = 'enter'
 const EXIT = 'exit'
 
 export function Transform (structureMap, subtypeMap) {
-  const shapeMap = FallbackMap(() => new Map())
+  const shapeMap = ShapeMap(structureMap)
   const stateMap = FallbackMap(() => new Map())
 
-  for (let [type, structure] of structureMap) {
-    const shape = shapeMap.get(type)
-    for (let child of getFullChildren(structureMap, type)) {
-      shape.set(child.name, child)
-    }
-  }
-
   function traverseNodeList (nodeList, parentPath, visitorMap) {
-    nodeList = nodeList || []
     let result = []
 
-    for (let node of nodeList) {
+    for (let node of iterable(nodeList)) {
       if (!isNode(node)) {
         result.push(node)
         continue
       }
 
       const childResult = traverseNode(node, parentPath, visitorMap)
+
       if (childResult === void 0) {
         result.push(node)
+        continue
+      }
 
-      } else if (Array.isArray(childResult)) {
+      if (Array.isArray(childResult)) {
         const subResult = traverseNodeList(childResult, parentPath, visitorMap)
         result = result.concat(subResult)
+        continue
+      }
 
-      } else if (childResult !== null) {
+      if (childResult !== null) {
         result.push(childResult)
       }
     }
@@ -78,15 +75,15 @@ export function Transform (structureMap, subtypeMap) {
         continue
       }
 
-      let childResult, nextResult = traverseNode(child, path, visitorMap)
-      while (nextResult != null) {
-        childResult = nextResult
-        nextResult = traverseNode(childResult, path, visitorMap)
+      let prevResult, nextResult = child
+      while (isNode(nextResult)) {
+        prevResult = nextResult
+        nextResult = traverseNode(prevResult, path, visitorMap)
       }
 
-      if (childResult !== void 0) {
-        node[name] = childResult
-      }
+      node[name] = nextResult === void 0
+        ? prevResult
+        : nextResult
     }
 
     for (let {exit, key} of handlerList) {
@@ -98,18 +95,20 @@ export function Transform (structureMap, subtypeMap) {
     }
   }
 
-  return function transform (rootNode, rawVisitor) {
-    if (!isNode(rootNode)) {
-      throw new Error('transform() only takes node object')
-    }
-
+  return function createTransform (rawVisitor) {
     const visitorMap = Visitor(rawVisitor, subtypeMap)
 
-    let result, next = traverseNode(rootNode, null, visitorMap)
-    while (next != null) {
-      result = next
-      next = traverseNode(result, null, visitorMap)
+    return function transform (rootNode) {
+      if (!isNode(rootNode)) {
+        throw new Error('transform() only takes node object')
+      }
+
+      let result, next = traverseNode(rootNode, null, visitorMap)
+      while (next != null) {
+        result = next
+        next = traverseNode(result, null, visitorMap)
+      }
+      return result || rootNode
     }
-    return result || rootNode
   }
 }

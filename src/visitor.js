@@ -39,8 +39,9 @@ export function Visitor (rawVisitor, subtypeMap) {
   for (let {index, value: visitor} of indexed(rawVisitor)) {
     for (let [target, rawHandler] of Object.entries(visitor)) {
       const handler = normalizeHandler(rawHandler, index)
-      for (let alias of subtypeMap.get(target)) {
-        handlerMap.get(alias).push(handler)
+
+      for (let subtype of subtypeMap.get(target)) {
+        handlerMap.get(subtype).push(handler)
       }
     }
   }

@@ -1,7 +1,7 @@
 {
   "name": "arboretum",
   "version": "0.0.0",
-  "description": "General tree manipulator",
+  "description": "Syntax-independent compiler framework",
   "main": "index.js",
   "scripts": {
     "test": "mocha test/** --compilers js:babel-register,js:babel-polyfill",
