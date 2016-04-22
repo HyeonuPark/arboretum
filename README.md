@@ -1,6 +1,8 @@
 Arboretum
 ==========
 
+[![Build Status](https://travis-ci.org/HyeonuPark/arboretum.svg?branch=master)](https://travis-ci.org/HyeonuPark/arboretum)
+
 Syntax-independent compiler framework
 
 # What's this?
