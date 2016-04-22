@@ -1,6 +1,6 @@
 {
   "name": "arboretum",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Syntax-independent compiler framework",
   "main": "index.js",
   "scripts": {
